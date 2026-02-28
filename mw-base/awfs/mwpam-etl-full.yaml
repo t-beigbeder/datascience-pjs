@@ -1,0 +1,139 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: mwpam-etl-
+spec:
+  entrypoint: mwpam-etl
+  volumes:
+  - name: ds-pods-secrets-volume
+    secret:
+      secretName: ds-pods-secrets
+  tolerations:
+  - effect: NoExecute
+    key: agent_deploy
+    operator: Exists
+  - effect: NoExecute
+    key: data_env
+    operator: Exists
+  - effect: NoExecute
+    key: dev_env
+    operator: Exists
+
+  templates:
+  - name: mwpam-etl
+
+    steps:
+    - - name: sfe-svr
+        template: sfe-svr
+
+    - - name: map
+        template: mwpam-map-etl-reduce
+        arguments:
+          parameters:
+          - name: cmd
+            value: /venv/bin/python -m mediawiki.pamtasks.map_ --host {{ steps.sfe-svr.ip }} --drop {{workflow.parameters.drop_db}}
+
+    - - name: etl-1
+        template: mwpam-map-etl-reduce
+        arguments:
+          parameters:
+          - name: cmd
+            value: /venv/bin/python -m mediawiki.pamtasks.etl --host {{ steps.sfe-svr.ip }} --map-id 1
+
+      - name: etl-2
+        template: mwpam-map-etl-reduce
+        arguments:
+          parameters:
+          - name: cmd
+            value: /venv/bin/python -m mediawiki.pamtasks.etl --host {{ steps.sfe-svr.ip }} --map-id 2
+
+
+      - name: etl-3
+        template: mwpam-map-etl-reduce
+        arguments:
+          parameters:
+          - name: cmd
+            value: /venv/bin/python -m mediawiki.pamtasks.etl --host {{ steps.sfe-svr.ip }} --map-id 3
+
+      - name: etl-4
+        template: mwpam-map-etl-reduce
+        arguments:
+          parameters:
+          - name: cmd
+            value: /venv/bin/python -m mediawiki.pamtasks.etl --host {{ steps.sfe-svr.ip }} --map-id 4
+
+    - - name: reduce
+        template: mwpam-map-etl-reduce
+        arguments:
+          parameters:
+          - name: cmd
+            value: /venv/bin/python -m mediawiki.pamtasks.reduce --host {{ steps.sfe-svr.ip }} --map-num 4
+
+    - - name: shutdown
+        template: mwpam-map-etl-reduce
+        arguments:
+          parameters:
+          - name: cmd
+            value: /venv/bin/python -m ddpestorec.sfe_ope_cli --host {{ steps.sfe-svr.ip }} --shutdown 5
+
+  - name: sfe-svr
+    daemon: true
+    container:
+      image: t-ctr.otvl.org/ddpestores:0.7.3
+      env:
+      - name: AWS_DEFAULT_REGION
+        value: gra
+      - name: AWS_ENDPOINT_URL
+        value: https://s3.gra.io.cloud.ovh.net/
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: ds-pods-secrets
+            key: s3_tests_access_key_id
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: ds-pods-secrets
+            key: s3_tests_secret_access_key
+      command: ["/venv/bin/python", "-m", "ddpestores.sfe_svr", "--host", "0.0.0.0", "--db-server", "t-db-pgs", "-d", "p11_mwpam_full", "-b", "otvl-tests"]
+      ports:
+      - containerPort: 8080
+      volumeMounts:
+      - mountPath: /run/ds-pods-secrets
+        name: ds-pods-secrets-volume
+        readOnly: true
+      readinessProbe:
+        exec:
+          command: ["/venv/bin/python", "-m", "ddpestorec.sfe_ope_cli", "--ready"]
+      resources:
+        requests:
+          memory: 2.5Gi
+          cpu: 750m
+
+  - name: mwpam-map-etl-reduce
+    inputs:
+      parameters:
+      - name: cmd
+    container:
+      image: t-ctr.otvl.org/mwpam-etl:0.2
+      env:
+      - name: AWS_DEFAULT_REGION
+        value: gra
+      - name: AWS_ENDPOINT_URL
+        value: https://s3.gra.io.cloud.ovh.net/
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: ds-pods-secrets
+            key: s3_tests_access_key_id
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: ds-pods-secrets
+            key: s3_tests_secret_access_key
+      command: ["bash", "-c"]
+      args: ["{{inputs.parameters.cmd}}"]
+      resources:
+        requests:
+          memory: 2Gi
+          cpu: 750m

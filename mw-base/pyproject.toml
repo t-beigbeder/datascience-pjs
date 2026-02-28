@@ -1,0 +1,60 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "p11-mw-base"
+dynamic = ["version", "dependencies"]
+authors = [{ name = "thierry_otvl", email = "tbeigbeder.nospam@gmail.com" }]
+description = "This is p11-mw-base"
+readme = "README.md"
+requires-python = ">=3.13"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+]
+license = "LicenseRef-EUPL-1.2-or-later"
+license-files = ["LICENSE.md"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.metadata.hooks.custom]
+path = "src/hatch_build.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/estorectest", "src/mediawiki"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  ".idea/",
+  ".vscode/",
+  "tmp/",
+  "logs/",
+  "build/",
+  "dist/",
+  "__pycache__/",
+  ".pytest_cache/",
+  ".coverage",
+  "htmlcov/",
+  ".mypy_cache/",
+]
+
+[project.urls]
+Homepage = "https://github.com/t-beigbeder/ddptools"
+
+[tool.mypy]
+exclude = [
+  "hatch_build.py",
+  "mwpam.py"
+]
+
+[[tool.mypy.overrides]]
+module = ["mwxml.*"]
+follow_untyped_imports = true
+
+[tool.pytest]
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s %(name)s %(levelname)-8s %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"

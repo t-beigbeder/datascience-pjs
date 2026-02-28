@@ -1,0 +1,102 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: estore-step-
+spec:
+  entrypoint: estore-example
+  volumes:
+  - name: ds-pods-secrets-volume
+    secret:
+      secretName: ds-pods-secrets
+  tolerations:
+  - effect: NoExecute
+    key: agent_deploy
+    operator: Exists
+  - effect: NoExecute
+    key: data_env
+    operator: Exists
+  - effect: NoExecute
+    key: dev_env
+    operator: Exists
+
+  templates:
+  - name: estore-example
+
+    steps:
+    - - name: sfe-svr
+        template: sfe-svr
+
+    - - name: client-init
+        template: estore-client
+        arguments:
+          parameters:
+          - name: cmd
+            value: /venv/bin/python -m ddpestorec.sfe_init_db --host {{ steps.sfe-svr.ip }} --drop {{workflow.parameters.drop_db}}
+
+    - - name: client-1
+        template: estore-client
+        arguments:
+          parameters:
+          - name: cmd
+            value: /venv/bin/python -m estorectest.estore_client --host {{ steps.sfe-svr.ip }} -c cat-cli1
+
+      - name: client-2
+        template: estore-client
+        arguments:
+          parameters:
+          - name: cmd
+            value: /venv/bin/python -m estorectest.estore_client --host {{ steps.sfe-svr.ip }} -c cat-cli2
+
+    - - name: client-final
+        template: estore-client
+        arguments:
+          parameters:
+          - name: cmd
+            value: /venv/bin/python -m ddpestorec.sfe_ope_cli --host {{ steps.sfe-svr.ip }} --shutdown 5
+
+  - name: sfe-svr
+    daemon: true
+    container:
+      image: t-ctr.otvl.org/ddpestores:0.5
+      env:
+      - name: AWS_DEFAULT_REGION
+        value: gra
+      - name: AWS_ENDPOINT_URL
+        value: https://s3.gra.io.cloud.ovh.net/
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: ds-pods-secrets
+            key: s3_tests_access_key_id
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: ds-pods-secrets
+            key: s3_tests_secret_access_key
+      command: ["/venv/bin/python", "-m", "ddpestores.sfe_svr", "--host", "0.0.0.0", "--db-server", "t-db-pgs", "-d", "wf1", "-b", "otvl-tests"]
+      ports:
+      - containerPort: 8080
+      volumeMounts:
+      - mountPath: /run/ds-pods-secrets
+        name: ds-pods-secrets-volume
+        readOnly: true
+      readinessProbe:
+        exec:
+          command: ["/venv/bin/python", "-m", "ddpestorec.sfe_ope_cli", "--ready"]
+      resources:
+        requests:
+          memory: 2.5Gi
+          cpu: 750m
+
+  - name: estore-client
+    inputs:
+      parameters:
+      - name: cmd
+    container:
+      image: t-ctr.otvl.org/ddpestorec-test:0.2
+      command: ["bash", "-c"]
+      args: ["{{inputs.parameters.cmd}}"]
+      resources:
+        requests:
+          memory: 1Gi
+          cpu: 750m

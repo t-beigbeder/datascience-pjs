@@ -1,0 +1,5 @@
+# ddpestorec @ file:///build/ddpestores-0.nnn-py3-none-any.whl (=> built)
+# ddpestorec @ file:///sources/ddpestorec (=> pyproject.toml)
+# following conflicts with ddpestores required for devs, docker will add it explicitly
+# ddpestorec @ file:///tools/pip_repo/ddpestorec/ddpestorec-0.7-py3-none-any.whl
+mwxml<1

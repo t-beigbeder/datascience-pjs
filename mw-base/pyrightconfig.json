@@ -1,0 +1,10 @@
+{
+   "include": ["src"],
+   "typeCheckingMode": "basic",
+   "reportMissingTypeStubs": "none",
+   "reportUnusedCallResult": "none",
+   "reportUnknownVariableType": "none",
+   "reportArgumentType": "none",
+   "reportUnknownMemberType": "none",
+   "reportUnknownArgumentType": "none"
+}

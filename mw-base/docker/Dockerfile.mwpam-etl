@@ -1,0 +1,27 @@
+ARG DDPESTOREC_DEV_IMAGE=registry/ddpestorec-dev:0.2-tbd
+ARG DEBPY_IMAGE=registry/debpy:3.13-tbd
+
+FROM $DDPESTOREC_DEV_IMAGE AS build
+
+ARG V_DDPT_V=0.1
+ARG V_P11MWB_V=0.1
+
+WORKDIR /sources
+COPY . /sources/
+WORKDIR /sources
+ENV V_DDPT_V=$V_DDPT_V
+RUN python3 -m venv /venv && \
+ /venv/bin/pip install /build/ddpestorec-${V_DDPT_V}-py3-none-any.whl .
+
+FROM $DEBPY_IMAGE
+
+RUN mkdir -p /home/dv-user  && \
+    chown -R 2001:2001 /home/dv-user
+COPY --from=build /venv /venv
+
+USER 2001
+WORKDIR /home/dv-user
+ENV LANG=en_US.UTF-8
+ENV USER=dv-user
+ENV HOME=/home/dv-user
+ENV SHELL=/bin/bash

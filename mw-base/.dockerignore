@@ -1,0 +1,9 @@
+# More info: https://docs.docker.com/build/concepts/context/#dockerignore-files
+
+.dockerignore
+Dockerfile
+.coverage
+.pytest_cache/
+__pycache__/
+.vscode/
+htmlcov/
