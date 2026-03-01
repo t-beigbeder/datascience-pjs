@@ -6,9 +6,9 @@ from hatchling.metadata.plugin.interface import MetadataHookInterface
 
 class MetaDataHook(MetadataHookInterface):
     def update(self, metadata):
-        v = os.getenv("V_P11MWB_V")
+        v = os.getenv("V_MWB_V")
         if not v:
-            raise ValueError("V_P11MWB_V environment variable shoud be set before building this package")
+            raise ValueError("V_MWB_V environment variable shoud be set before building this package")
         metadata["version"] = v
         metadata["dependencies"] = []
         with pathlib.Path(self.root, "requirements.txt").open() as if_:

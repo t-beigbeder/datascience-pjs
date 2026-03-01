@@ -4,7 +4,7 @@ ARG DEBPY_IMAGE=registry/debpy:3.13-tbd
 FROM $DDPESTOREC_DEV_IMAGE AS build
 
 ARG V_DDPT_V=0.1
-ARG V_P11MWB_V=0.1
+ARG V_MWB_V=0.1
 
 WORKDIR /sources
 COPY . /sources/
