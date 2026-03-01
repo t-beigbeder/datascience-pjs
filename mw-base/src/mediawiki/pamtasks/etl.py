@@ -134,6 +134,7 @@ def process_pam_pack(
         for page in dump.pages:
             if page.redirect:
                 pps["redirect_count"] += 1
+                continue
             for revision in page:
                 if (
                     revision.text is None

@@ -3,7 +3,7 @@ all:
 help:	## show this help
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
 
-VENV := $(shell if [ -z "${VENV}" ] ; then echo /local/venvs/p11-mw-base ; else echo ${VENV} ; fi)
+VENV := $(shell if [ -z "${VENV}" ] ; then echo /local/venvs/ds-pjs-mw-base ; else echo ${VENV} ; fi)
 
 .PHONY: venv
 venv: ## create a virtualenv and install dependencies
@@ -77,7 +77,7 @@ docker:	## builds first mw docker images
 		--build-arg V_DDPT_V=$(V_DDPT_V) \
 		--build-arg DEBPY_IMAGE=$(V_CTR_PFX)debpy:$(V_DEBPY_V) \
 		--build-arg DDPESTOREC_DEV_IMAGE=$(V_CTR_PFX)ddpestorec-dev:$(V_DDPT_V) \
-		--build-arg V_P11MWB_V=$(V_P11MWB_V) \
-		-t $(V_CTR_PFX)mwpam-etl:$(V_P11MWB_V) \
+		--build-arg V_MWB_V=$(V_MWB_V) \
+		-t $(V_CTR_PFX)mwpam-etl:$(V_MWB_V) \
 		. -f docker/Dockerfile.mwpam-etl
-	docker push $(V_CTR_PFX)mwpam-etl:$(V_P11MWB_V)
+	docker push $(V_CTR_PFX)mwpam-etl:$(V_MWB_V)

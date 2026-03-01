@@ -93,7 +93,7 @@ spec:
       parameters:
       - name: cmd
     container:
-      image: t-ctr.otvl.org/ddpestorec-test:0.3
+      image: t-ctr.otvl.org/ddpestorec-test:0.4
       command: ["bash", "-c"]
       args: ["{{inputs.parameters.cmd}}"]
       resources:

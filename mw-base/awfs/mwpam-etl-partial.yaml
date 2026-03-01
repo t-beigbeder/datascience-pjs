@@ -115,7 +115,7 @@ spec:
       parameters:
       - name: cmd
     container:
-      image: t-ctr.otvl.org/mwpam-etl:0.3
+      image: t-ctr.otvl.org/mwpam-etl:0.4
       env:
       - name: AWS_DEFAULT_REGION
         value: gra
