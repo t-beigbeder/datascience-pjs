@@ -7,7 +7,7 @@ VENV := $(shell if [ -z "${VENV}" ] ; then echo /local/venvs/ds-pjs-mw-base ; el
 
 .PHONY: venv
 venv: ## create a virtualenv and install dependencies
-venv: export V_DDPT_V=0.7.3
+venv: export V_DDPT_V=0.7.4
 venv:
 	virtualenv $(VENV)
 	$(VENV)/bin/pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt # --extra-index-url http://localhost:8080

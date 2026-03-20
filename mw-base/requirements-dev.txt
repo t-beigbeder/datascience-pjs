@@ -5,4 +5,4 @@ pytest
 mypy
 types-grpcio
 types-protobuf
-ddpestores @ file:///tools/pip_repo/ddpestores/ddpestores-0.7.3-py3-none-any.whl
+ddpestores @ file:///tools/pip_repo/ddpestores/ddpestores-0.7.4-py3-none-any.whl
